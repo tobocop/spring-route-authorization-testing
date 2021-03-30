@@ -16,14 +16,17 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	implementation("org.springframework.boot:spring-boot-starter-security:2.4.4")
+	implementation("org.springframework.boot:spring-boot-starter-web:2.4.4")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.11.4")
+	implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.31")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
+
+	// Needed to get PathMappedEndpoints for auto-checking of every route
 	implementation("org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.security:spring-security-test")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test:2.4.4")
+	testImplementation("org.springframework.security:spring-security-test:5.4.5")
 }
 
 tasks.withType<KotlinCompile> {
