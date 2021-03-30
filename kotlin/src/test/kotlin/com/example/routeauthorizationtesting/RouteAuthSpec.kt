@@ -1,6 +1,5 @@
 package com.example.routeauthorizationtesting
 
-import com.example.routeauthorizationtesting.Access.*
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpMethod.*
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -8,7 +7,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 
 
-data class AuthorizationSpec(
+data class RouteAuthSpec(
     val route: String,
     val verb: HttpMethod,
     val access: Access

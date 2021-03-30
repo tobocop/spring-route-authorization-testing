@@ -33,6 +33,8 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
             .and()
             .authorizeRequests()
             .antMatchers(HttpMethod.GET, "/user/*").hasAnyRole("ADMIN", "BASIC")
+            .antMatchers(HttpMethod.POST, "/user").hasAnyRole("ADMIN")
+            .antMatchers(HttpMethod.DELETE, "/user/*").hasAnyRole("ADMIN")
             .and()
             .csrf().disable()
             .formLogin().disable()
