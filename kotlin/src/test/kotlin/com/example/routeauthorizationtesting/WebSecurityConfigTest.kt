@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 
 @SpringBootTest
@@ -27,15 +28,17 @@ internal class WebSecurityConfigTest {
     @Test
     fun `tests every route and no non-existent routes`() {
         val allRoutes = requestMapping.handlerMethods.keys
-            .filter { !it.patternsCondition!!.patterns.contains("/error") }
-            .flatMap { key ->
-                val method = key.methodsCondition.methods.first()
-                val routes = key.patternsCondition!!.patterns
+            .filter { it.patternsCondition != null }
+            .filterNot { it.patternsCondition!!.patterns.contains("/error") }
+            .flatMap { requestMappingInfo ->
+                val method = requestMappingInfo.methodsCondition.methods.first()
+                val routes = requestMappingInfo.patternsCondition!!.patterns
                 routes.map { route -> "$method $route" }
             }
         val testedRoutes = routeAuthSpecs.map { spec ->
             "${spec.verb} ${spec.route}"
         }
+
         val untestedRoutes: Set<String> = allRoutes.subtract(testedRoutes)
         Assertions.assertThat(untestedRoutes)
             .withFailMessage("The following routes are untested: %s", untestedRoutes)
