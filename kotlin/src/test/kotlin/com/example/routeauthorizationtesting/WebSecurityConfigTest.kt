@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.endpoint.web.PathMappedEndpoints
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpStatus
@@ -23,9 +22,6 @@ internal class WebSecurityConfigTest {
     lateinit var requestMapping: RequestMappingHandlerMapping
 
     @Autowired
-    lateinit var actuatorMapping: PathMappedEndpoints
-
-    @Autowired
     private lateinit var routeAuthSpecs: RouteAuthSpecs
 
     @Test
@@ -36,9 +32,7 @@ internal class WebSecurityConfigTest {
                 val method = key.methodsCondition.methods.first()
                 val routes = key.patternsCondition!!.patterns
                 routes.map { route -> "$method $route" }
-            }.toSet().plus(
-                actuatorMapping.allPaths.map { "GET $it" }
-            )
+            }
         val testedRoutes = routeAuthSpecs.map { spec ->
             "${spec.verb} ${spec.route}"
         }

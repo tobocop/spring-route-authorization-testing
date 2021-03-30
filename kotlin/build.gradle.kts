@@ -22,9 +22,6 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.31")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.31")
 
-	// Needed to get PathMappedEndpoints for auto-checking of every route
-	implementation("org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE")
-
 	testImplementation("org.springframework.boot:spring-boot-starter-test:2.4.4")
 	testImplementation("org.springframework.security:spring-security-test:5.4.5")
 }
