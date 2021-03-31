@@ -1,9 +1,9 @@
 package com.example.routeauthorizationtesting;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -11,14 +11,24 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @SpringBootTest
 //@AutoConfigureMockMvc
 class WebSecurityConfigTest {
-    @Autowired
-    RequestMappingHandlerMapping requestMapping;
+    final Set<RouteAuthSpec> routeAuthSpecs = Set.of(
+        new RouteAuthSpec("/user/{id}", HttpMethod.GET, new Access.Unauthenticated()),
+        new RouteAuthSpec("/user/{id}", HttpMethod.PUT, new Access.AnyRole(Role.ADMIN, Role.BASIC)),
+        new RouteAuthSpec("/user/{id}", HttpMethod.PATCH, new Access.AnyRole(Role.ADMIN, Role.BASIC)),
+        new RouteAuthSpec("/user", HttpMethod.POST, new Access.AnyRole(Role.ADMIN)),
+        new RouteAuthSpec("/user/{id}", HttpMethod.DELETE, new Access.AnyRole(Role.ADMIN)),
+        new RouteAuthSpec("/some-route-without-correct-auth-to-show-failure", HttpMethod.POST, new Access.AnyRole(Role.ADMIN)),
+        new RouteAuthSpec("/some-route-not-implemented-to-show-failure", HttpMethod.GET, new Access.Unauthenticated())
+    );
 
     @Autowired
-    Set<RouteAuthSpec> routeAuthSpecs;
+    RequestMappingHandlerMapping requestMapping;
 
     @Test
     void testsEveryRouteAndNoNonExistentRoutes() {
@@ -40,17 +50,14 @@ class WebSecurityConfigTest {
             .filter((r) -> !testedRoutes.contains(r))
             .collect(Collectors.toSet());
 
-        Assertions.assertThat(untestedRoutes)
-            .withFailMessage("The following routes are untested: %s", untestedRoutes)
-            .isEmpty();
-
-        Set<String> nonExistentRoutes = testedRoutes.stream()
+        Set<String> nonexistentRoutes = testedRoutes.stream()
             .filter((r) -> !allRoutes.contains(r))
             .collect(Collectors.toSet());
 
-        Assertions.assertThat(nonExistentRoutes)
-            .withFailMessage("Tests are defined for the following nonexistent routes: %s", nonExistentRoutes)
-            .isEmpty();
+        assertAll(
+            () -> assertTrue(untestedRoutes.isEmpty(), String.format("The following routes are untested: %s", untestedRoutes)),
+            () -> assertTrue(nonexistentRoutes.isEmpty(), String.format("Tests are defined for the following nonexistent routes: %s", nonexistentRoutes))
+        );
     }
 
 }
