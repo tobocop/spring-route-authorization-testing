@@ -1,7 +1,6 @@
 package com.example.routeauthorizationtesting
 
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
@@ -52,15 +51,10 @@ internal class WebSecurityConfigTest {
         val untestedRoutes: Set<String> = allRoutes.subtract(testedRoutes)
         val nonexistentRoutes = testedRoutes.minus("GET /index").subtract(allRoutes)
 
-        assertAll({
-            assertThat(untestedRoutes)
-                .withFailMessage("The following routes are untested: %s", untestedRoutes)
-                .isEmpty()
-        }, {
-            assertThat(nonexistentRoutes)
-                .withFailMessage("Tests are defined for the following nonexistent routes: %s", nonexistentRoutes)
-                .isEmpty()
-        })
+        assertAll(
+            { assertTrue(untestedRoutes.isEmpty(), String.format("The following routes are untested: %s", untestedRoutes)) },
+            { assertTrue(nonexistentRoutes.isEmpty(), String.format("Tests are defined for the following nonexistent routes: %s", nonexistentRoutes)) }
+        )
     }
 
 
@@ -94,19 +88,16 @@ internal class WebSecurityConfigTest {
         when (spec.access) {
             is Access.AnyRole -> {
                 if (spec.access.allowedForRole(role)) {
-                    assertThat(result.response.status)
-                        .withFailMessage("Expected role $role to be PERMITTED to ${spec.verb} ${spec.route}")
-                        .isNotEqualTo(HttpStatus.FORBIDDEN.value())
+                    assertNotEquals(HttpStatus.FORBIDDEN.value(), result.response.status,
+                        "Expected role $role to be PERMITTED to ${spec.verb} ${spec.route}")
                 } else {
-                    assertThat(result.response.status)
-                        .withFailMessage("Expected role $role to be FORBIDDEN to ${spec.verb} ${spec.route}")
-                        .isEqualTo(HttpStatus.FORBIDDEN.value())
+                    assertEquals(HttpStatus.FORBIDDEN.value(), result.response.status,
+                        "Expected role $role to be FORBIDDEN to ${spec.verb} ${spec.route}")
                 }
             }
             is Access.Unauthenticated -> {
-                assertThat(result.response.status)
-                    .withFailMessage("Expected role $role to be PERMITTED to ${spec.verb} ${spec.route}")
-                    .isNotEqualTo(HttpStatus.FORBIDDEN.value())
+                assertNotEquals(HttpStatus.FORBIDDEN.value(), result.response.status,
+                    "Expected role $role to be PERMITTED to ${spec.verb} ${spec.route}")
             }
         }
     }
@@ -114,20 +105,17 @@ internal class WebSecurityConfigTest {
     private fun assertCorrectUnauthenticated(spec: RouteAuthSpec) {
         val result = mockMvc.perform(spec.request).andReturn()
 
-        assertThat(result.response.status)
-            .withFailMessage("Method ${spec.verb} does not exist for route ${spec.route}")
-            .isNotEqualTo(HttpStatus.METHOD_NOT_ALLOWED.value())
+        assertNotEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), result.response.status,
+            "Method ${spec.verb} does not exist for route ${spec.route}")
 
         when (spec.access) {
             is Access.Unauthenticated -> {
-                assertThat(result.response.status)
-                    .withFailMessage("Expected ${spec.verb} ${spec.route} not to require authentication")
-                    .isNotEqualTo(HttpStatus.UNAUTHORIZED.value())
+                assertNotEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
+                    "Expected ${spec.verb} ${spec.route} not to require authentication")
             }
             else -> {
-                assertThat(result.response.status)
-                    .withFailMessage("Expected ${spec.verb} ${spec.route} to require authentication.")
-                    .isEqualTo(HttpStatus.UNAUTHORIZED.value())
+                assertEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
+                    "Expected ${spec.verb} ${spec.route} to require authentication.")
             }
         }
     }
