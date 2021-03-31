@@ -10,7 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 
 @Configuration
-class WebSecurityConfig: WebSecurityConfigurerAdapter() {
+class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     @Bean
     fun encoder(): PasswordEncoder {
         return BCryptPasswordEncoder()
@@ -32,9 +32,11 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
         http.httpBasic()
             .and()
             .authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/user/*").hasAnyRole("ADMIN", "BASIC")
-            .antMatchers(HttpMethod.POST, "/user").hasAnyRole("ADMIN")
-            .antMatchers(HttpMethod.DELETE, "/user/*").hasAnyRole("ADMIN")
+            .antMatchers(HttpMethod.GET, "/user/*").permitAll()
+            .antMatchers(HttpMethod.POST, "/user").hasAnyRole(Role.ADMIN.toString())
+            .antMatchers(HttpMethod.DELETE, "/user/*").hasAnyRole(Role.ADMIN.toString())
+            .antMatchers(HttpMethod.PUT, "/user/*").hasAnyRole(Role.ADMIN.toString(), Role.BASIC.toString())
+            .antMatchers(HttpMethod.PATCH, "/user/*").hasAnyRole(Role.ADMIN.toString(), Role.BASIC.toString())
             .and()
             .csrf().disable()
             .formLogin().disable()
