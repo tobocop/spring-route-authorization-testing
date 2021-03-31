@@ -14,7 +14,7 @@ data class RouteAuthSpec(
 ) {
     val request: MockHttpServletRequestBuilder
         get() {
-            val sanitizedRoute = route.replace(Regex("\\{\\w+\\}"), "0")
+            val sanitizedRoute = route.replace(Regex("\\{\\w+}"), "0")
             return when (verb) {
                 GET -> get(sanitizedRoute)
                 POST -> post(sanitizedRoute).with(csrf())
