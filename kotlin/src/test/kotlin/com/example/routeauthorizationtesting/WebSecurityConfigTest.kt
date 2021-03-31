@@ -1,29 +1,39 @@
 package com.example.routeauthorizationtesting
 
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 
 @SpringBootTest
 @AutoConfigureMockMvc
 internal class WebSecurityConfigTest {
+
+    val routeAuthSpecs: Set<RouteAuthSpec> = setOf(
+        RouteAuthSpec("/user/{id}", HttpMethod.GET, Access.AnyRole(Role.ADMIN, Role.BASIC)),
+        RouteAuthSpec("/user/{id}", HttpMethod.PUT, Access.AnyRole(Role.ADMIN, Role.BASIC)),
+        RouteAuthSpec("/user/{id}", HttpMethod.PATCH, Access.AnyRole(Role.ADMIN, Role.BASIC)),
+        RouteAuthSpec("/user", HttpMethod.POST, Access.AnyRole(Role.ADMIN)),
+        RouteAuthSpec("/user/{id}", HttpMethod.DELETE, Access.AnyRole(Role.ADMIN)),
+        RouteAuthSpec("/some-route-without-correct-auth-to-show-failure", HttpMethod.POST, Access.AnyRole(Role.ADMIN)),
+        RouteAuthSpec("/some-route-not-implemented-to-show-failure", HttpMethod.GET, Access.Unauthenticated),
+    )
+
     @Autowired
     private lateinit var mockMvc: MockMvc
 
     @Autowired
     lateinit var requestMapping: RequestMappingHandlerMapping
 
-    @Autowired
-    private lateinit var routeAuthSpecs: RouteAuthSpecs
 
     @Test
     fun `tests every route and no non-existent routes`() {
@@ -40,14 +50,18 @@ internal class WebSecurityConfigTest {
         }
 
         val untestedRoutes: Set<String> = allRoutes.subtract(testedRoutes)
-        Assertions.assertThat(untestedRoutes)
-            .withFailMessage("The following routes are untested: %s", untestedRoutes)
-            .isEmpty()
-
         val nonexistentRoutes = testedRoutes.minus("GET /index").subtract(allRoutes)
-        Assertions.assertThat(nonexistentRoutes)
-            .withFailMessage("Tests are defined for the following nonexistent routes: %s", nonexistentRoutes)
-            .isEmpty()
+
+        assertAll({
+            Assertions.assertThat(untestedRoutes)
+                .withFailMessage("The following routes are untested: %s", untestedRoutes)
+                .isEmpty()
+        }, {
+            Assertions.assertThat(nonexistentRoutes)
+                .withFailMessage("Tests are defined for the following nonexistent routes: %s", nonexistentRoutes)
+                .isEmpty()
+        })
+
     }
 
     @TestFactory
