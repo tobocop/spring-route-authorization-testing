@@ -57,6 +57,13 @@ internal class WebSecurityConfigTest {
         )
     }
 
+    @TestFactory
+    fun `all routes have correct authorization when unauthenticated`(): List<DynamicTest> =
+        routeAuthSpecs.map { spec ->
+            dynamicTest("Unauthenticated [${spec.verb}] ${spec.route}") {
+                assertCorrectUnauthenticated(spec)
+            }
+        }
 
     @TestFactory
     fun `all routes have correct authorization when authenticated`(): List<DynamicTest> =
@@ -68,13 +75,23 @@ internal class WebSecurityConfigTest {
             }
         }
 
-    @TestFactory
-    fun `all routes have correct authorization when unauthenticated`(): List<DynamicTest> =
-        routeAuthSpecs.map { spec ->
-            dynamicTest("Unauthenticated [${spec.verb}] ${spec.route}") {
-                assertCorrectUnauthenticated(spec)
+    private fun assertCorrectUnauthenticated(spec: RouteAuthSpec) {
+        val result = mockMvc.perform(spec.request).andReturn()
+
+        assertNotEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), result.response.status,
+            "Method ${spec.verb} does not exist for route ${spec.route}")
+
+        when (spec.access) {
+            is Access.Unauthenticated -> {
+                assertNotEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
+                    "Expected ${spec.verb} ${spec.route} not to require authentication")
+            }
+            else -> {
+                assertEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
+                    "Expected ${spec.verb} ${spec.route} to require authentication.")
             }
         }
+    }
 
     private fun assertCorrectAuthz(role: Role, spec: RouteAuthSpec) {
         val result = mockMvc.perform(
@@ -98,24 +115,6 @@ internal class WebSecurityConfigTest {
             is Access.Unauthenticated -> {
                 assertNotEquals(HttpStatus.FORBIDDEN.value(), result.response.status,
                     "Expected role $role to be PERMITTED to ${spec.verb} ${spec.route}")
-            }
-        }
-    }
-
-    private fun assertCorrectUnauthenticated(spec: RouteAuthSpec) {
-        val result = mockMvc.perform(spec.request).andReturn()
-
-        assertNotEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), result.response.status,
-            "Method ${spec.verb} does not exist for route ${spec.route}")
-
-        when (spec.access) {
-            is Access.Unauthenticated -> {
-                assertNotEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
-                    "Expected ${spec.verb} ${spec.route} not to require authentication")
-            }
-            else -> {
-                assertEquals(HttpStatus.UNAUTHORIZED.value(), result.response.status,
-                    "Expected ${spec.verb} ${spec.route} to require authentication.")
             }
         }
     }
