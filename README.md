@@ -13,4 +13,4 @@ You should get a few test failures to show you what they look like and so you ca
 
 To get an overview of the classes, what they are, and the approach, checkout the post on Tanzu Developer Center here:
 
-**Will add once published
+[Spring Route Authorization Testing - Tanzu Developer Center](https://tanzu.vmware.com/developer/guides/spring/spring-route-authorization-testing/)
